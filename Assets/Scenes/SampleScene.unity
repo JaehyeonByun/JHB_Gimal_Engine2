@@ -341,6 +341,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   meshRenderer: {fileID: 1063111955}
   meshFilter: {fileID: 1063111956}
+  vertexIndex: 0
+  vertices: []
+  triangles: 
+  uvs: []
+  world: {fileID: 0}
 --- !u!23 &1063111955
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -435,8 +440,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a23551da0ed4d04ab64025c3e93f50d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 963194228}
+  spawnPosition: {x: 0, y: 0, z: 0}
   material: {fileID: 2100000, guid: 30f1aed8f5d63124088868a2ae7d8523, type: 2}
   blocktypes:
+  - blockName: Air
+    isSolid: 0
+    backFaceTexture: 0
+    frontFaceTexture: 0
+    topFaceTexture: 0
+    bottomFaceTexture: 0
+    leftFaceTexture: 0
+    rightFaceTexture: 0
   - blockName: Bedrock
     isSolid: 1
     backFaceTexture: 9
