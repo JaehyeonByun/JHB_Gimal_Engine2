@@ -339,13 +339,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5f71c3bf69c0d041b0d9a857eb14fd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meshRenderer: {fileID: 1063111955}
-  meshFilter: {fileID: 1063111956}
-  vertexIndex: 0
-  vertices: []
-  triangles: 
-  uvs: []
-  world: {fileID: 0}
 --- !u!23 &1063111955
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -440,6 +433,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a23551da0ed4d04ab64025c3e93f50d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seed: 51651616
+  biome: {fileID: 11400000, guid: c923961cfa6f62841a5ae2e538a8f3da, type: 2}
   player: {fileID: 963194228}
   spawnPosition: {x: 0, y: 0, z: 0}
   material: {fileID: 2100000, guid: 30f1aed8f5d63124088868a2ae7d8523, type: 2}
@@ -484,6 +479,22 @@ MonoBehaviour:
     bottomFaceTexture: 15
     leftFaceTexture: 13
     rightFaceTexture: 13
+  - blockName: Sand
+    isSolid: 1
+    backFaceTexture: 10
+    frontFaceTexture: 10
+    topFaceTexture: 10
+    bottomFaceTexture: 10
+    leftFaceTexture: 10
+    rightFaceTexture: 10
+  - blockName: Dirt
+    isSolid: 1
+    backFaceTexture: 1
+    frontFaceTexture: 1
+    topFaceTexture: 1
+    bottomFaceTexture: 1
+    leftFaceTexture: 1
+    rightFaceTexture: 1
 --- !u!4 &1604818664
 Transform:
   m_ObjectHideFlags: 0

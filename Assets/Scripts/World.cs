@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class World : MonoBehaviour
 {
+    public int seed;
+    public BiomeAttributes biome;
+
     public Transform player;
     public Vector3 spawnPosition;
 
@@ -18,6 +21,8 @@ public class World : MonoBehaviour
 
     private void Start()
     {
+        Random.InitState(seed);
+
         spawnPosition = new Vector3((VoxelData.WorldSizeInChunks * VoxelData.ChunkWidth) / 2f, VoxelData.ChunkHeight + 2f, (VoxelData.WorldSizeInChunks * VoxelData.ChunkWidth) / 2f);
         GenerateWorld();
         playerLastChunkCoord = GetChunkCoordFromVector3(player.position);
@@ -90,14 +95,46 @@ public class World : MonoBehaviour
 
     public byte GetVoxel(Vector3 pos)
     {
+        //여기서 절대적 뭐라하는데 뭔진 모르겠음;;
+        int yPos = Mathf.FloorToInt(pos.y);
+
+        //만약 블럭 위면 무조건 공기
         if(!IsVoxelInWorld(pos))
             return 0;
-        if (pos.y < 1)
+
+        //좌표 0은 무조건 베드락
+        if (yPos == 0)
             return 1;
-        else if (pos.y == VoxelData.ChunkHeight - 1)
-            return 3;
+
+        //Terrain 기초
+        int terrainHeight = Mathf.FloorToInt(biome.terrainHeight * Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.terrainScale)) + biome.solidGroundHeight;
+        byte voxelValue = 0;
+
+        if (yPos == terrainHeight)
+            voxelValue = 3;
+        else if (yPos < terrainHeight && yPos > terrainHeight - 4)
+            voxelValue = 6;
+        else if (yPos > terrainHeight)
+            return 0;
         else
-            return 2;
+            voxelValue = 2;
+
+        //
+        if (voxelValue == 2)
+        {
+            foreach(Lode lode in biome.lodes)
+            {
+                if(yPos > lode.minHeight && yPos < lode.maxHeight)
+                {
+                    if(Noise.Get3DPerlin(pos, lode.noiseOffset,lode.scale,lode.threshold))
+                    {
+                        voxelValue = lode.blockID;
+                    }
+                }
+            }
+        }
+            return voxelValue;
+
     }
 
     void CreateNewChunk(int x, int z)
