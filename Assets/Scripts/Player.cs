@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
@@ -28,10 +28,21 @@ public class Player : MonoBehaviour
     private float verticalMomentum = 0f;
     private bool jumpRequest;
 
+    public Transform highlightBlock;
+    public Transform placeBlock;
+    public float checkIncrement = 0.1f;
+    public float reach = 8f;
+
+    public Text selectedBlockText;
+    public byte selectedBlockIndex = 1;
+
     void Start()
     {
         cam = GameObject.Find("Main Camera").transform;
         world =  GameObject.Find("World").GetComponent<World>();
+
+        Cursor.lockState = CursorLockMode.Locked;
+        selectedBlockText.text = world.blocktypes[selectedBlockIndex].blockName + " 블럭 선택됨";
     }
 
     private void FixedUpdate()
@@ -50,6 +61,7 @@ public class Player : MonoBehaviour
     void Update()
     {
         GetPlayerInputs();
+        PlaceCursorBlocks();
 
     }
 
@@ -90,8 +102,8 @@ public class Player : MonoBehaviour
     {
         horizontal = Input.GetAxis("Horizontal");
         vertical = Input.GetAxis("Vertical");
-        mouseHorizontal = Input.GetAxis("Mouse X");
-        mouseVertical = Input.GetAxis("Mouse Y");
+        mouseHorizontal = Input.GetAxis("Mouse X") * 5;
+        mouseVertical = Input.GetAxis("Mouse Y") * 5;
 
         if (Input.GetButtonDown("sprint"))
             isSprinting = true;
@@ -102,6 +114,68 @@ public class Player : MonoBehaviour
         {
             jumpRequest = true;
         }
+
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+
+        if(scroll != 0)
+        {
+            if(scroll > 0)
+            {
+                selectedBlockIndex++;
+            }
+            else
+            {
+                selectedBlockIndex--;
+            }
+
+            if (selectedBlockIndex > (byte)(world.blocktypes.Length - 1))
+                selectedBlockIndex = 1;
+
+            if (selectedBlockIndex < 1)
+                selectedBlockIndex = (byte)(world.blocktypes.Length - 1);
+
+            selectedBlockText.text = world.blocktypes[selectedBlockIndex].blockName + " 블럭 선택됨";
+        }
+
+        if(highlightBlock.gameObject.activeSelf)
+        {
+            //블럭 파괴
+            if (Input.GetMouseButtonDown(0))
+                world.GetChunkFromVector3(highlightBlock.position).EditVoxel(highlightBlock.position, 0);
+            //블럭 설치
+            if (Input.GetMouseButtonDown(1))
+                world.GetChunkFromVector3(placeBlock.position).EditVoxel(placeBlock.position, selectedBlockIndex);
+        }
+    }
+
+    private void PlaceCursorBlocks()
+    {
+        float step = checkIncrement;
+        Vector3 lastPos = new Vector3();
+
+        while(step < reach)
+        {
+            Vector3 pos = cam.position + (cam.forward * step);
+
+            if(world.CheckForVoxel(pos))
+            {
+                highlightBlock.position = new Vector3 (Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y), Mathf.FloorToInt(pos.z));
+                placeBlock.position = lastPos;
+
+                highlightBlock.gameObject.SetActive(true);
+                placeBlock.gameObject.SetActive(true);
+
+                return;
+
+            }
+            
+            lastPos = new Vector3(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y), Mathf.FloorToInt(pos.z));
+
+            step += checkIncrement;
+        }    
+
+        highlightBlock.gameObject.SetActive(false);
+        placeBlock.gameObject.SetActive(false);
     }
 
 
