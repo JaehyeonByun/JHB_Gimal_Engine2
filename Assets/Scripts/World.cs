@@ -164,14 +164,14 @@ public class World : MonoBehaviour
         int terrainHeight = Mathf.FloorToInt(biome.terrainHeight * Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.terrainScale)) + biome.solidGroundHeight;
         byte voxelValue = 0;
 
-        if (yPos == terrainHeight)
+        if (yPos == terrainHeight)      //맨 위일때 
             voxelValue = 3;
-        else if (yPos < terrainHeight && yPos > terrainHeight - 4)
-            voxelValue = 6;
-        else if (yPos > terrainHeight)
+        else if (yPos < terrainHeight && yPos > terrainHeight - 4) //맨 위보다 밑이지만 -4 까지
+            voxelValue = 5;
+        else if (yPos > terrainHeight)          //높이보다 위쪽일 경우 공기
             return 0;
         else
-            voxelValue = 2;
+            voxelValue = 2;     //그게 다 아니면 돌로 땜빵
 
         //
         if (voxelValue == 2)
@@ -216,6 +216,7 @@ public class BlockType
 {
     public string blockName;
     public bool isSolid;
+    public Sprite icon;
 
     [Header("Texture Vaules")]
     public int backFaceTexture;
