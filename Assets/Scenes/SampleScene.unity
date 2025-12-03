@@ -1962,6 +1962,16 @@ MonoBehaviour:
     bottomFaceTexture: 3
     leftFaceTexture: 3
     rightFaceTexture: 3
+  - blockName: OakLeave
+    isSolid: 1
+    isTransparent: 1
+    icon: {fileID: 21300000, guid: 8baddb7d8e0246f46bb091f70377ce16, type: 3}
+    backFaceTexture: 16
+    frontFaceTexture: 16
+    topFaceTexture: 16
+    bottomFaceTexture: 16
+    leftFaceTexture: 16
+    rightFaceTexture: 16
   debugScreen: {fileID: 1051545278}
 --- !u!4 &1604818664
 Transform:
