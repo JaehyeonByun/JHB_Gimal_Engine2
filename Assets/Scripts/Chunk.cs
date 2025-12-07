@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using System.Threading;
 
 public class Chunk 
 {
@@ -21,6 +22,8 @@ public class Chunk
     Material[] materials = new Material[2];
     List<Vector2> uvs = new List<Vector2>();
 
+    public Vector3 position;
+
     public byte[,,] voxelMap = new byte[VoxelData.ChunkWidth, VoxelData.ChunkHeight, VoxelData.ChunkWidth];
 
     public Queue<VoxelMod> modifications = new Queue<VoxelMod>();
@@ -28,7 +31,8 @@ public class Chunk
     World world;
 
     private bool _isActive;
-    public bool isVoxelMapPopulated = false;
+    private bool isVoxelMapPopulated = false;
+    private bool threadLocked = false;                   //쓰레드라는 계념을 설명하는데 흠... 난 잘 모르겠다 ㅇㅇ
     public Chunk (ChunkCoord _coord, World _world, bool generateOnLoad)
     {
         coord = _coord;
@@ -54,9 +58,10 @@ public class Chunk
         chunkObject.transform.SetParent(world.transform);
         chunkObject.transform.position = new Vector3(coord.x * VoxelData.ChunkWidth, 0f, coord.z * VoxelData.ChunkWidth);
         chunkObject.name = "Chunk " + coord.x + ", " + coord.z;
+        position = chunkObject.transform.position;
 
-        PopulateVoxelMap();
-        UpdateChunk();
+        Thread myThread = new Thread (new ThreadStart(PopulateVoxelMap)); 
+        myThread.Start();
 
         //meshCollider.sharedMesh = meshFilter.mesh;
     }
@@ -77,12 +82,21 @@ public class Chunk
             }
         }
 
+        _UpdateChunk();
         isVoxelMapPopulated = true; 
 
     }
 
     public void UpdateChunk()
     {
+        Thread myThread = new Thread(new ThreadStart(_UpdateChunk));
+        myThread.Start();
+    }
+
+    private void _UpdateChunk()
+    {
+        threadLocked = true;
+
         while (modifications.Count > 0)
         {
             VoxelMod v = modifications.Dequeue();           //Dequeue : 리스트 맨 상단에 있는것은 실행 후 삭제
@@ -107,8 +121,12 @@ public class Chunk
                 }
             }
         }
+        lock (world.chunksToDraw)           //잠금 기능이 있는데 잠겨있으면 기다리고 안잠겨있으면 잠그고 밑에 코드 실행한다는..뜻인듯
+        {
+            world.chunksToDraw.Enqueue(this);
+        }
 
-        CreateMesh();
+        threadLocked = false;
 
     }
 
@@ -130,9 +148,15 @@ public class Chunk
                 chunkObject.SetActive(value); }
     }
 
-    public Vector3 position
+    public bool isEditable
     {
-        get { return chunkObject.transform.position; }
+        get
+        {
+            if(!isVoxelMapPopulated || threadLocked)
+                return false;
+            else
+                return true;
+        }
     }
 
     bool IsVoxelInChunk(int x, int y , int z)
@@ -156,7 +180,7 @@ public class Chunk
 
         //주위 청크 업데이트
         UpdateSurroundingVoxels(xCheck, yCheck, zCheck);
-        UpdateChunk();
+        _UpdateChunk();
 
 
     }
@@ -196,8 +220,8 @@ public class Chunk
         int yCheck = Mathf.FloorToInt(pos.y);
         int zCheck = Mathf.FloorToInt(pos.z);
 
-        xCheck -= Mathf.FloorToInt(chunkObject.transform.position.x);
-        zCheck -= Mathf.FloorToInt(chunkObject.transform.position.z);
+        xCheck -= Mathf.FloorToInt(position.x);
+        zCheck -= Mathf.FloorToInt(position.z);
 
         return voxelMap[xCheck, yCheck, zCheck];
     }
@@ -245,7 +269,7 @@ public class Chunk
 
     }
 
-    void CreateMesh()
+    public void CreateMesh()
     {
 
         Mesh mesh = new Mesh();
