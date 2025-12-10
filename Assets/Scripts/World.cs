@@ -28,7 +28,9 @@ public class World : MonoBehaviour
 
     Queue<Queue<VoxelMod>> modifications = new Queue<Queue<VoxelMod>>();          //신기한거 있다. list 랑 비슷한데 다른건가 ++ 왜 큐 안에 큐가 들어가냐 이거.
 
+    private bool _inUI = false;
     public GameObject debugScreen;
+    
 
     private void Start()
     {
@@ -236,6 +238,17 @@ public class World : MonoBehaviour
 
         return blocktypes[GetVoxel(pos)].isTransparent;
 
+    }
+
+    public bool inUI
+    {
+        get { return _inUI; }
+
+        set
+        {
+            _inUI = value;
+
+        }
     }
 
     public byte GetVoxel(Vector3 pos)
