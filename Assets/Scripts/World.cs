@@ -247,7 +247,10 @@ public class World : MonoBehaviour
         set
         {
             _inUI = value;
-
+            if(_inUI)
+                Cursor.lockState = CursorLockMode.None;
+            else
+                Cursor.lockState = CursorLockMode.Locked;
         }
     }
 
