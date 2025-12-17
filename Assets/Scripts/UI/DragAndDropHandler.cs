@@ -28,13 +28,55 @@ public class DragAndDropHandler : MonoBehaviour
             return;
         }
 
+        cursorSlot.transform.position = Input.mousePosition;
+
         if(Input.GetMouseButtonDown(0))
         {
-            if (CheckForSlot() != null)
-                Debug.Log("Item Slot Clicked");
+            HandleSlotClick(CheckForSlot());
         }
 
 
+    }
+
+    private void HandleSlotClick (UIItemSlot clickedSlot)
+    {
+        if ((clickedSlot == null))
+        {
+            return;
+        }
+
+        if (!cursorSlot.HasItem && !clickedSlot.HasItem)
+            return;
+
+        if(clickedSlot.itemSlot.isCreative)
+        {
+            cursorItemSlot.EmptySlot();
+            cursorItemSlot.InsertStack(clickedSlot.itemSlot.stack);
+        }
+
+        if(!cursorSlot.HasItem && clickedSlot.HasItem)
+        {
+            cursorItemSlot.InsertStack(clickedSlot.itemSlot.TakeAll());
+            return;
+        }
+
+        if(cursorSlot.HasItem && !clickedSlot.HasItem)
+        {
+            clickedSlot.itemSlot.InsertStack(cursorItemSlot.TakeAll());
+            return;
+        }
+
+        if (cursorSlot.HasItem && clickedSlot.HasItem)
+        {
+            if(cursorSlot.itemSlot.stack.id != clickedSlot.itemSlot.stack.id)
+            {
+                ItemStack oldCursorSlot = cursorSlot.itemSlot.TakeAll();
+                ItemStack oldSlot = clickedSlot.itemSlot.TakeAll();
+
+                clickedSlot.itemSlot.InsertStack(oldCursorSlot);
+                cursorSlot.itemSlot.InsertStack(oldSlot);
+            }
+        }
     }
 
     private UIItemSlot CheckForSlot()
