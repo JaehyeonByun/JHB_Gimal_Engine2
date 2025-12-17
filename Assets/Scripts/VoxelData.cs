@@ -1,17 +1,25 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class VoxelData    
+public static class VoxelData
 {
+
     public static readonly int ChunkWidth = 16;
     public static readonly int ChunkHeight = 128;
     public static readonly int WorldSizeInChunks = 100;
 
+    // Lighting Values
+    public static float minLightLevel = 0.1f;
+    public static float maxLightLevel = 0.9f;
+    public static float lightFalloff = 0.2f;
+
+
     public static int WorldSizeInVoxels
     {
+
         get { return WorldSizeInChunks * ChunkWidth; }
+
     }
 
     public static readonly int ViewDistanceInChunks = 5;
@@ -19,7 +27,9 @@ public static class VoxelData
     public static readonly int TextureAtlasSizeInBlocks = 16;
     public static float NormalizedBlockTextureSize
     {
+
         get { return 1f / (float)TextureAtlasSizeInBlocks; }
+
     }
 
     public static readonly Vector3[] voxelVerts = new Vector3[8] {
@@ -48,7 +58,7 @@ public static class VoxelData
 
     public static readonly int[,] voxelTris = new int[6, 4] {
 
-        //순서대로 [ 중요함 이거!! ] 뒤 , 앞 , 위 , 아래 , 좌 , 우
+        // Back, Front, Top, Bottom, Left, Right
 
 		// 0 1 2 2 1 3
 		{0, 3, 1, 2}, // Back Face
@@ -68,4 +78,6 @@ public static class VoxelData
         new Vector2 (1.0f, 1.0f)
 
     };
+
+
 }
