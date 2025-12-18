@@ -2,16 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
+using System.IO;
 
 public class World : MonoBehaviour
 {
+    public Settings settings;
 
     [Header("월드 생성 수치")]
-    public int seed;                //시드 고쳐야함
     public BiomeAttributes biome;
-
-    [Header("Performance")]
-    public bool enableThreading;
 
     [Range(0f, 1f)]
     public float globalLightLevel;
@@ -52,14 +50,21 @@ public class World : MonoBehaviour
 
     private void Start()
     {
-        Random.InitState(seed);
+        //string jsonExport = JsonUtility.ToJson(settings);
 
+        //File.WriteAllText(Application.dataPath + "/setting.cfg", jsonExport);
+
+        string jsonImport = File.ReadAllText(Application.dataPath + "/setting.cfg");
+        settings = JsonUtility.FromJson<Settings>(jsonImport);
+
+        Random.InitState(settings.seed);
+        settings.mouseSensitivity = 2f;
 
         Shader.SetGlobalFloat("minGlobalLightLevel", VoxelData.minLightLevel);
         Shader.SetGlobalFloat("maxGlobalLightLevel", VoxelData.maxLightLevel);
 
 
-        if (enableThreading)
+        if (settings.enableThreading)
         {
             ChunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
             ChunkUpdateThread.Start();
@@ -89,7 +94,7 @@ public class World : MonoBehaviour
                 if (chunksToDraw.Peek().isEditable)
                         chunksToDraw.Dequeue().CreateMesh();
 
-        if (!enableThreading)
+        if (!settings.enableThreading)
         {
 
             if (!applyingModifications)
@@ -109,9 +114,9 @@ public class World : MonoBehaviour
     void GenerateWorld()
     {
 
-        for (int x = (VoxelData.WorldSizeInChunks / 2) - VoxelData.ViewDistanceInChunks; x < (VoxelData.WorldSizeInChunks / 2) + VoxelData.ViewDistanceInChunks; x++)
+        for (int x = (VoxelData.WorldSizeInChunks / 2) - settings.viewDistance; x < (VoxelData.WorldSizeInChunks / 2) + settings.viewDistance; x++)
         {
-            for (int z = (VoxelData.WorldSizeInChunks / 2) - VoxelData.ViewDistanceInChunks; z < (VoxelData.WorldSizeInChunks / 2) + VoxelData.ViewDistanceInChunks; z++)
+            for (int z = (VoxelData.WorldSizeInChunks / 2) - settings.viewDistance; z < (VoxelData.WorldSizeInChunks / 2) + settings.viewDistance; z++)
             {
                 ChunkCoord newChunk = new ChunkCoord(x, z);
                 chunks[x, z] = new Chunk(new ChunkCoord(x, z), this);
@@ -173,7 +178,7 @@ public class World : MonoBehaviour
 
     private void OnDisable()
     {
-        if (enableThreading)
+        if (settings.enableThreading)
         {
 
             ChunkUpdateThread.Abort();
@@ -240,9 +245,9 @@ public class World : MonoBehaviour
 
         activeChunks.Clear();
 
-        for (int x = coord.x - VoxelData.ViewDistanceInChunks; x < coord.x + VoxelData.ViewDistanceInChunks; x++)
+        for (int x = coord.x - settings.viewDistance; x < coord.x + settings.viewDistance; x++)
         {
-            for (int z = coord.z - VoxelData.ViewDistanceInChunks; z < coord.z + VoxelData.ViewDistanceInChunks; z++)
+            for (int z = coord.z - settings.viewDistance; z < coord.z + settings.viewDistance; z++)
             {
 
                 if (IsChunkInWorld(new ChunkCoord(x, z)))
@@ -306,6 +311,13 @@ public class World : MonoBehaviour
 
         return new VoxelState(GetVoxel(pos));
 
+    }
+
+    public byte GetVoxelFromWorld(Vector3 pos)
+    {
+        VoxelState state = GetVoxelState(pos);
+        if (state == null) return 0; // 월드 밖이면 공기 반환
+        return state.id;
     }
 
     public bool inUI
@@ -494,4 +506,22 @@ public class VoxelMod
 
     }
 
+}
+
+[System.Serializable]
+public class Settings
+{
+    [Header("Game Data")]
+    public string version;
+
+    [Header("Performance")]
+    public int viewDistance;
+    public bool enableThreading;
+
+    [Header("Controls")]
+    [Range(0.1f, 10f)]
+    public float mouseSensitivity;
+
+    [Header("World Gen")]
+    public int seed;
 }

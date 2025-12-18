@@ -163,6 +163,16 @@ public class ItemSlot
 
     }
 
+    public void AddAmount(int amt)
+    {
+        if (stack != null)
+        {
+            stack.amount += amt;
+            if (uiItemSlot != null)
+                uiItemSlot.UpdateSlot();
+        }
+    }
+
     public ItemStack TakeAll()
     {
         ItemStack handOver = new ItemStack(stack.id, stack.amount);

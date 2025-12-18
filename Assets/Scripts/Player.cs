@@ -27,11 +27,14 @@ public class Player : MonoBehaviour
     private Vector3 velocity;
     private float verticalMomentum = 0f;
     private bool jumpRequest;
+    private float verticalRotation = 0f;
 
     public Transform highlightBlock;
     public Transform placeBlock;
     public float checkIncrement = 0.1f;
     public float reach = 8f;
+
+    public Inventory inventory;
 
     public Toolbar toolbar;
 
@@ -52,10 +55,13 @@ public class Player : MonoBehaviour
              if (jumpRequest)
              {
                  Jump();
-             }
+            }
 
-            transform.Rotate(Vector3.up * mouseHorizontal);
-            cam.Rotate(Vector3.right * -mouseVertical);
+            transform.Rotate(Vector3.up * mouseHorizontal * world.settings.mouseSensitivity);
+            verticalRotation -= mouseVertical * world.settings.mouseSensitivity;
+            verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);
+            cam.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
+
             transform.Translate(velocity, Space.World);
         }
     }
@@ -125,22 +131,29 @@ public class Player : MonoBehaviour
             jumpRequest = true;
         }
 
-        if(highlightBlock.gameObject.activeSelf)
+        if (highlightBlock.gameObject.activeSelf)
         {
-            //블럭 파괴
             if (Input.GetMouseButtonDown(0))
+            {
+                byte blockID = world.GetVoxel(highlightBlock.position);
+
+                if (blockID != 0)
+                {
+                    inventory.AddItem(blockID, 1);
+                }
+
                 world.GetChunkFromVector3(highlightBlock.position).EditVoxel(highlightBlock.position, 0);
-            //블럭 설치
+            }
+
             if (Input.GetMouseButtonDown(1))
             {
                 if (toolbar.slots[toolbar.slotIndex].HasItem)
                 {
                     world.GetChunkFromVector3(placeBlock.position).EditVoxel(placeBlock.position, toolbar.slots[toolbar.slotIndex].itemSlot.stack.id);
+
                     toolbar.slots[toolbar.slotIndex].itemSlot.Take(1);
                 }
             }
-
-
         }
     }
 
